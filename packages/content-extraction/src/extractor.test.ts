@@ -32,6 +32,18 @@ describe('extractMainContent', () => {
     expect(extractMainContent(html)).toContain('Main content here')
   })
 
+  it('extracts nested article content without truncation', () => {
+    const html = '<article><p>Outer</p><article><p>Inner</p></article><p>Tail</p></article>'
+    const result = extractMainContent(html)
+    expect(result).toContain('Inner')
+    expect(result).toContain('Tail')
+  })
+
+  it('extracts content from an uppercase <ARTICLE> tag', () => {
+    const html = '<ARTICLE><p>Shouted content</p></ARTICLE>'
+    expect(extractMainContent(html)).toContain('Shouted content')
+  })
+
   it('extracts content from <main> tag', () => {
     const html = '<html><body><main><p>Primary content</p></main></body></html>'
     expect(extractMainContent(html)).toContain('Primary content')
@@ -64,13 +76,45 @@ describe('sanitizeHtml', () => {
     expect(sanitizeHtml(html)).not.toContain('onclick')
   })
 
+  it('removes unquoted event handler attributes', () => {
+    const html = '<img src=x onclick=alert(1)>'
+    expect(sanitizeHtml(html)).not.toContain('onclick')
+    expect(sanitizeHtml(html)).not.toContain('alert')
+  })
+
   it('removes javascript: URLs', () => {
     const html = '<a href="javascript:evil()">Link</a>'
     expect(sanitizeHtml(html)).not.toContain('javascript:')
   })
 
+  it('removes unquoted javascript: URLs', () => {
+    const html = '<a href=javascript:evil()>Link</a>'
+    expect(sanitizeHtml(html)).not.toContain('javascript:')
+    expect(sanitizeHtml(html)).not.toContain('evil')
+  })
+
+  it('removes unclosed script tags', () => {
+    const html = '<p>Safe</p><script src="https://evil.com/x.js">'
+    expect(sanitizeHtml(html)).not.toContain('<script')
+  })
+
+  it('removes unclosed iframe tags', () => {
+    const html = '<iframe src="https://evil.com">'
+    expect(sanitizeHtml(html)).not.toContain('<iframe')
+  })
+
+  it('handles uppercase dangerous tags', () => {
+    const html = '<p>Safe</p><SCRIPT>alert("xss")</SCRIPT>'
+    expect(sanitizeHtml(html)).not.toContain('alert')
+  })
+
   it('removes style attributes', () => {
     const html = '<p style="color: red">Safe</p>'
+    expect(sanitizeHtml(html)).not.toContain('style=')
+  })
+
+  it('removes unquoted style attributes', () => {
+    const html = '<p style=color:red>Safe</p>'
     expect(sanitizeHtml(html)).not.toContain('style=')
   })
 
