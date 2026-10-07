@@ -1,0 +1,26 @@
+{
+  "name": "@byewalls/api",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@byewalls/types": "*",
+    "@byewalls/config": "*",
+    "@byewalls/security": "*",
+    "@byewalls/content-extraction": "*",
+    "@byewalls/ai": "*",
+    "@byewalls/sharing": "*",
+    "@byewalls/archive": "*",
+    "@byewalls/observability": "*",
+    "express": "^4.21.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "@types/express": "^5.0.0"
+  }
+}

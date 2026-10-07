@@ -1,0 +1,34 @@
+import { describe, it, expect } from 'vitest'
+import { isPrivateIp, isValidPublicUrl } from './index'
+
+describe('isPrivateIp', () => {
+  it('blocks localhost', () => {
+    expect(isPrivateIp('127.0.0.1')).toBe(true)
+  })
+
+  it('blocks private ranges', () => {
+    expect(isPrivateIp('10.0.0.1')).toBe(true)
+    expect(isPrivateIp('192.168.1.1')).toBe(true)
+    expect(isPrivateIp('172.16.0.1')).toBe(true)
+  })
+
+  it('allows public IPs', () => {
+    expect(isPrivateIp('8.8.8.8')).toBe(false)
+  })
+})
+
+describe('isValidPublicUrl', () => {
+  it('accepts http and https', () => {
+    expect(isValidPublicUrl('https://example.com')).toBe(true)
+    expect(isValidPublicUrl('http://example.com')).toBe(true)
+  })
+
+  it('rejects other protocols', () => {
+    expect(isValidPublicUrl('ftp://example.com')).toBe(false)
+    expect(isValidPublicUrl('file:///etc/passwd')).toBe(false)
+  })
+
+  it('rejects invalid URLs', () => {
+    expect(isValidPublicUrl('not-a-url')).toBe(false)
+  })
+})
