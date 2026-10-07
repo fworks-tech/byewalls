@@ -48,16 +48,16 @@
 
 ## Phase 4 — Artificial Intelligence
 
-- [ ] Create the `AIProvider` interface.
-- [ ] Create a configurable remote provider.
-- [ ] Create the Ollama adapter.
-- [ ] Create the OpenCode adapter.
-- [ ] Create the summary prompt.
-- [ ] Limit input and output tokens.
-- [ ] Handle provider timeouts.
-- [ ] Handle provider unavailability.
-- [ ] Cache summary responses.
-- [ ] Record aggregate usage metrics.
+- [x] Create the `AIProvider` interface.
+- [x] Create a configurable remote provider.
+- [x] Create the Ollama adapter.
+- [x] Create the OpenCode adapter.
+- [x] Create the summary prompt.
+- [x] Limit input and output tokens.
+- [x] Handle provider timeouts.
+- [x] Handle provider unavailability.
+- [ ] Cache summary responses (requires Redis).
+- [ ] Record aggregate usage metrics (requires Redis).
 
 ---
 

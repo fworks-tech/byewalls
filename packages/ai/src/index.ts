@@ -8,3 +8,7 @@ export interface AIProvider {
     outputTokens?: number
   }>
 }
+
+export { RemoteAIProvider, OllamaProvider, ZenAIProvider, createAIProvider } from './providers'
+export type { AIProviderOptions, SummaryResult } from './providers'
+export { buildSummaryPrompt } from './prompt'
