@@ -23,13 +23,19 @@ describe('RemoteAIProvider', () => {
   })
 
   it('handles provider timeout', async () => {
-    const mockFetch = vi.fn().mockImplementation(() => new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('timeout')), 100)
-    }))
+    vi.useFakeTimers()
+    const mockFetch = vi.fn().mockImplementation((_url: string, options: { signal: AbortSignal }) => {
+      return new Promise((_resolve, reject) => {
+        options.signal.addEventListener('abort', () => reject(new Error('aborted')))
+      })
+    })
     vi.stubGlobal('fetch', mockFetch)
 
     const provider = new RemoteAIProvider('https://api.example.com/v1/summarize')
-    await expect(provider.summarize({ content: 'Test' })).rejects.toThrow()
+    const promise = provider.summarize({ content: 'Test' })
+    vi.advanceTimersByTime(30_000)
+    await expect(promise).rejects.toThrow('aborted')
+    vi.useRealTimers()
   })
 
   it('handles provider unavailability', async () => {
