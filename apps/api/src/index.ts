@@ -2,7 +2,7 @@ import express from 'express'
 import { z } from 'zod'
 import { config } from '@byewalls/config'
 import { logger } from '@byewalls/observability'
-import { fetchContent } from '@byewalls/content-extraction'
+import { fetchContent, extractMetadata, extractMainContent, sanitizeHtml } from '@byewalls/content-extraction'
 
 const app = express()
 app.use(express.json())
@@ -23,8 +23,18 @@ app.post('/api/analyze', async (req, res) => {
   }
 
   try {
-    const result = await fetchContent(parsed.data.url)
-    res.json(result)
+    const fetched = await fetchContent(parsed.data.url)
+    const metadata = extractMetadata(fetched.content)
+    const rawContent = extractMainContent(fetched.content)
+    const sanitized = sanitizeHtml(rawContent)
+
+    res.json({
+      url: fetched.url,
+      title: metadata.title,
+      author: metadata.author,
+      publishedAt: metadata.publishedAt,
+      content: sanitized,
+    })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error'
     logger.warn('URL processing failed', { error: message })
