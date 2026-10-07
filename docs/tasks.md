@@ -63,17 +63,17 @@
 
 ## Phase 5 — Temporary Links
 
-- [ ] Create the sharing data model.
-- [ ] Generate secure tokens.
-- [ ] Store only token hashes.
-- [ ] Create the link creation endpoint.
-- [ ] Create the link lookup endpoint.
-- [ ] Create the link revocation endpoint.
-- [ ] Implement link expiration.
-- [ ] Implement view limits.
-- [ ] Add security headers.
-- [ ] Create the public share page.
-- [ ] Create the cleanup job.
+- [x] Create the sharing data model.
+- [x] Generate secure tokens.
+- [x] Store only token hashes.
+- [x] Create the link creation endpoint.
+- [x] Create the link lookup endpoint.
+- [x] Create the link revocation endpoint.
+- [x] Implement link expiration.
+- [x] Implement view limits.
+- [x] Add security headers.
+- [x] Create the public share page.
+- [x] Create the cleanup job.
 
 ---
 
