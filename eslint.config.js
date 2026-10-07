@@ -5,6 +5,9 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
+    ignores: ['**/dist/**', '**/.next/**', '**/next-env.d.ts'],
+  },
+  {
     rules: {
       semi: ['error', 'never'],
       quotes: ['error', 'single'],

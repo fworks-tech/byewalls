@@ -8,3 +8,5 @@ export interface ExtractedContent {
 export function extractContent(_html: string): ExtractedContent {
   return { content: '' }
 }
+
+export { fetchContent } from './fetcher'

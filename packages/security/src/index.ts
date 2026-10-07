@@ -10,8 +10,16 @@ const PRIVATE_IP_RANGES = [
   /^fe80:/i,
 ]
 
+const BLOCKED_HOSTNAMES = ['localhost', 'metadata.google.internal']
+
 export function isPrivateIp(hostname: string): boolean {
   return PRIVATE_IP_RANGES.some((range) => range.test(hostname))
+}
+
+export function isBlockedHost(hostname: string): boolean {
+  if (BLOCKED_HOSTNAMES.includes(hostname.toLowerCase())) return true
+  if (isPrivateIp(hostname)) return true
+  return false
 }
 
 export function isValidPublicUrl(url: string): boolean {
