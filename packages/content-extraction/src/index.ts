@@ -10,3 +10,4 @@ export function extractContent(_html: string): ExtractedContent {
 }
 
 export { fetchContent } from './fetcher'
+export { extractMetadata, extractMainContent, sanitizeHtml } from './extractor'
