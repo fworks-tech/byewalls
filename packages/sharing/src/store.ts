@@ -23,6 +23,7 @@ export interface ShareStore {
   findShareByTokenHash(tokenHash: string): Promise<ShareRecord | null>
   findShareById(id: string): Promise<ShareRecord | null>
   incrementViewCount(id: string): Promise<void>
+  incrementViewCountIfBelowMax(id: string, maxViews: number): Promise<boolean>
   revokeShare(id: string): Promise<void>
   deleteShare(id: string): Promise<void>
   listExpiredOrRevoked(beforeIso: string): Promise<ShareRecord[]>
@@ -60,6 +61,10 @@ export function openShareStore(path: string): SqliteShareStore {
 export class SqliteShareStore implements ShareStore {
   constructor(private readonly db: DatabaseSync) {
     this.db.exec(`
+      PRAGMA journal_mode=WAL;
+      PRAGMA synchronous=NORMAL;
+      PRAGMA busy_timeout=5000;
+
       CREATE TABLE IF NOT EXISTS results (
         id TEXT PRIMARY KEY,
         url TEXT NOT NULL,
@@ -96,7 +101,7 @@ export class SqliteShareStore implements ShareStore {
       result.publishedAt ?? null,
       result.content,
       result.summary ?? null,
-      result.processedAt.toISOString(),
+      result.processedAt,
     )
   }
 
@@ -111,7 +116,7 @@ export class SqliteShareStore implements ShareStore {
       publishedAt: row.published_at ?? undefined,
       content: row.content,
       summary: row.summary ?? undefined,
-      processedAt: new Date(row.processed_at),
+      processedAt: row.processed_at,
     }
   }
 
@@ -154,6 +159,13 @@ export class SqliteShareStore implements ShareStore {
     this.db.prepare('UPDATE shares SET view_count = view_count + 1 WHERE id = ?').run(id)
   }
 
+  async incrementViewCountIfBelowMax(id: string, maxViews: number): Promise<boolean> {
+    const result = this.db.prepare(
+      'UPDATE shares SET view_count = view_count + 1 WHERE id = ? AND view_count < ?',
+    ).run(id, maxViews)
+    return result.changes > 0
+  }
+
   async revokeShare(id: string): Promise<void> {
     this.db.prepare('UPDATE shares SET revoked_at = ? WHERE id = ?').run(new Date().toISOString(), id)
   }
@@ -164,7 +176,7 @@ export class SqliteShareStore implements ShareStore {
 
   async listExpiredOrRevoked(beforeIso: string): Promise<ShareRecord[]> {
     const rows = this.db.prepare(
-      'SELECT * FROM shares WHERE expires_at < ? OR revoked_at IS NOT NULL',
+      'SELECT * FROM shares WHERE expires_at <= ? OR revoked_at IS NOT NULL',
     ).all(beforeIso) as unknown as ShareRow[]
     return rows.map(mapShareRow)
   }

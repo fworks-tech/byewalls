@@ -7,3 +7,5 @@ export interface ArchiveProvider {
     to?: Date
   }): Promise<Snapshot[]>
 }
+
+export { ArchivePhProvider } from './providers/archive-ph'

@@ -10,7 +10,7 @@ const result: ProcessedResult = {
   url: 'https://example.com/article',
   title: 'Example article',
   content: '<p>Hello</p>',
-  processedAt: new Date('2026-10-07T00:00:00.000Z'),
+  processedAt: '2026-10-07T00:00:00.000Z',
 }
 
 function serviceAt(iso: string): { store: SqliteShareStore; service: ShareService } {
@@ -34,14 +34,14 @@ describe('ShareService.createShare', () => {
     const { store, service } = serviceAt('2026-10-07T00:00:00.000Z')
     await store.saveResult(result)
     const created = await service.createShare({ resultId: 'result_1' })
-    expect(created.expiresAt.toISOString()).toBe('2026-10-08T00:00:00.000Z')
+    expect(created.expiresAt).toBe('2026-10-08T00:00:00.000Z')
   })
 
   it('honors a custom expiresIn', async () => {
     const { store, service } = serviceAt('2026-10-07T00:00:00.000Z')
     await store.saveResult(result)
     const created = await service.createShare({ resultId: 'result_1', expiresInSeconds: 600 })
-    expect(created.expiresAt.toISOString()).toBe('2026-10-07T00:10:00.000Z')
+    expect(created.expiresAt).toBe('2026-10-07T00:10:00.000Z')
   })
 
   it('rejects shares for a missing result', async () => {

@@ -12,7 +12,7 @@ const result: ProcessedResult = {
   author: 'Jane Doe',
   publishedAt: '2026-10-01T00:00:00.000Z',
   content: '<p>Hello world</p>',
-  processedAt: new Date('2026-10-07T00:00:00.000Z'),
+  processedAt: '2026-10-07T00:00:00.000Z',
 }
 
 let deps: AppDeps

@@ -14,8 +14,8 @@ export interface CreateShareOptions {
 export interface ShareView {
   share: {
     id: string
-    expiresAt: Date
-    createdAt: Date
+    expiresAt: string
+    createdAt: string
     viewCount: number
     maxViews?: number
   }
@@ -28,26 +28,27 @@ export class ShareService {
     private readonly now: () => Date = () => new Date(),
   ) {}
 
-  async createShare(options: CreateShareOptions): Promise<{ token: string; expiresAt: Date }> {
+  async createShare(options: CreateShareOptions): Promise<{ token: string; expiresAt: string }> {
     const result = await this.store.findResult(options.resultId)
     if (!result) throw new Error('RESULT_NOT_FOUND')
 
     const now = this.now()
     const token = generateToken()
     const expiresAt = new Date(now.getTime() + (options.expiresInSeconds ?? DEFAULT_EXPIRES_SECONDS) * 1000)
+    const expiresAtIso = expiresAt.toISOString()
 
     await this.store.saveShare({
       id: randomUUID(),
       tokenHash: hashToken(token),
       resultId: options.resultId,
-      expiresAt: expiresAt.toISOString(),
+      expiresAt: expiresAtIso,
       revokedAt: null,
       createdAt: now.toISOString(),
       viewCount: 0,
       maxViews: options.maxViews ?? null,
     })
 
-    return { token, expiresAt }
+    return { token, expiresAt: expiresAtIso }
   }
 
   async resolveShare(token: string): Promise<ShareView | null> {
@@ -62,15 +63,19 @@ export class ShareService {
     const result = await this.store.findResult(record.resultId)
     if (!result) return null
 
-    // ponytail: check-then-increment can overshoot maxViews by one under concurrency; a
-    // transaction with SELECT ... FOR UPDATE fixes it if view limits ever need to be strict.
-    await this.store.incrementViewCount(record.id)
+    let incremented = false
+    if (record.maxViews !== null) {
+      incremented = await this.store.incrementViewCountIfBelowMax(record.id, record.maxViews)
+      if (!incremented) return null
+    } else {
+      await this.store.incrementViewCount(record.id)
+    }
 
     return {
       share: {
         id: record.id,
-        expiresAt: new Date(record.expiresAt),
-        createdAt: new Date(record.createdAt),
+        expiresAt: record.expiresAt,
+        createdAt: record.createdAt,
         viewCount: record.viewCount + 1,
         maxViews: record.maxViews ?? undefined,
       },

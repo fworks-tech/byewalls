@@ -11,4 +11,4 @@ export const config = {
   aiApiKey: process.env.AI_API_KEY ?? '',
   aiModel: process.env.AI_MODEL ?? 'qwen3.8-flash',
   ollamaUrl: process.env.OLLAMA_URL ?? 'http://localhost:11434',
-} as const
+}

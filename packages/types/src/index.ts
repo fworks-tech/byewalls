@@ -6,7 +6,7 @@ export interface ProcessedResult {
   author?: string
   publishedAt?: string
   summary?: string
-  processedAt: Date
+  processedAt: string
 }
 
 export interface ApiError {
@@ -19,9 +19,9 @@ export interface ShareLink {
   id: string
   tokenHash: string
   resultId: string
-  expiresAt: Date
-  revokedAt?: Date
-  createdAt: Date
+  expiresAt: string
+  revokedAt?: string
+  createdAt: string
   viewCount: number
   maxViews?: number
 }

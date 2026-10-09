@@ -8,7 +8,7 @@ const result: ProcessedResult = {
   url: 'https://example.com/article',
   title: 'Example article',
   content: '<p>Hello</p>',
-  processedAt: new Date('2026-10-07T00:00:00.000Z'),
+  processedAt: '2026-10-07T00:00:00.000Z',
 }
 
 describe('SqliteShareStore', () => {
