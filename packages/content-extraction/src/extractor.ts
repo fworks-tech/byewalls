@@ -1,3 +1,6 @@
+import { JSDOM } from 'jsdom'
+import DOMPurify from 'isomorphic-dompurify'
+
 export interface PageMetadata {
   title?: string
   author?: string
@@ -48,21 +51,22 @@ function extractBalancedElement(html: string, tag: string): string | undefined {
   return undefined
 }
 
-const DANGEROUS_TAGS = /<(script|iframe|object|embed|form|style|link|meta|head)[^>]*>[\s\S]*?<\/\1>/gi
-const DANGEROUS_SELF_CLOSING = /<(script|iframe|object|embed|form|style|link|meta|head)[^>]*\/>/gi
-const UNCLOSED_OPENING = /<(script|iframe|object|embed|form|style|link|meta|head)\b[^>]*>/gi
-const STRAY_CLOSING = /<\/(script|iframe|object|embed|form|style)\s*>/gi
-const EVENT_HANDLERS = /\son\w+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi
-const JAVASCRIPT_URLS = /\bhref\s*=\s*(?:"(?:javascript|vbscript):[^"]*"|'(?:javascript|vbscript):[^']*'|(?:javascript|vbscript):[^\s>]*)/gi
-const STYLE_ATTRIBUTES = /\sstyle\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi
+const domPurify = DOMPurify(new JSDOM('').window)
 
 export function sanitizeHtml(html: string): string {
-  return html
-    .replace(DANGEROUS_TAGS, '')
-    .replace(DANGEROUS_SELF_CLOSING, '')
-    .replace(UNCLOSED_OPENING, '')
-    .replace(STRAY_CLOSING, '')
-    .replace(EVENT_HANDLERS, '')
-    .replace(JAVASCRIPT_URLS, '')
-    .replace(STYLE_ATTRIBUTES, '')
+  return domPurify.sanitize(html, {
+    ALLOWED_TAGS: [
+      'p', 'br', 'strong', 'em', 'u', 's', 'blockquote', 'code', 'pre',
+      'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+      'ul', 'ol', 'li',
+      'a', 'img',
+      'table', 'thead', 'tbody', 'tr', 'th', 'td',
+      'div', 'span', 'section', 'article', 'main', 'header', 'footer',
+    ],
+    ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class', 'id'],
+    ALLOW_DATA_ATTR: false,
+    RETURN_DOM: false,
+    RETURN_DOM_FRAGMENT: false,
+    KEEP_CONTENT: true,
+  })
 }
