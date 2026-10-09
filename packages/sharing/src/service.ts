@@ -22,6 +22,21 @@ export interface ShareView {
   result: ProcessedResult
 }
 
+function isShareValid(record: { expiresAt: string; revokedAt: string | null; maxViews: number | null; viewCount: number }, now: Date): boolean {
+  if (new Date(record.expiresAt) <= now) return false
+  if (record.revokedAt) return false
+  if (record.maxViews !== null && record.viewCount >= record.maxViews) return false
+  return true
+}
+
+async function incrementViewCount(store: ShareStore, recordId: string, maxViews: number | null): Promise<boolean> {
+  if (maxViews !== null) {
+    return store.incrementViewCountIfBelowMax(recordId, maxViews)
+  }
+  await store.incrementViewCount(recordId)
+  return true
+}
+
 export class ShareService {
   constructor(
     private readonly store: ShareStore,
@@ -56,20 +71,13 @@ export class ShareService {
     if (!record) return null
 
     const now = this.now()
-    if (new Date(record.expiresAt) <= now) return null
-    if (record.revokedAt) return null
-    if (record.maxViews !== null && record.viewCount >= record.maxViews) return null
+    if (!isShareValid(record, now)) return null
 
     const result = await this.store.findResult(record.resultId)
     if (!result) return null
 
-    let incremented = false
-    if (record.maxViews !== null) {
-      incremented = await this.store.incrementViewCountIfBelowMax(record.id, record.maxViews)
-      if (!incremented) return null
-    } else {
-      await this.store.incrementViewCount(record.id)
-    }
+    const isIncremented = await incrementViewCount(this.store, record.id, record.maxViews)
+    if (!isIncremented) return null
 
     return {
       share: {

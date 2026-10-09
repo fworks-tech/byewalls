@@ -11,6 +11,30 @@ export interface FetchedContent {
   contentType: string
 }
 
+function validateAndResolveRedirect(currentUrl: string, location: string): string {
+  const redirectUrl = new URL(location, currentUrl).toString()
+  if (!isValidPublicUrl(redirectUrl)) {
+    throw new Error('Redirect to invalid URL: only HTTP and HTTPS protocols are allowed')
+  }
+  const redirectParsed = new URL(redirectUrl)
+  if (isBlockedHost(redirectParsed.hostname)) {
+    throw new Error('Redirect to blocked host: private, internal, or metadata endpoints are not allowed')
+  }
+  return redirectUrl
+}
+
+function validateContentType(contentType: string): void {
+  if (!contentType.includes('text/html')) {
+    throw new Error(`Unsupported content-type: ${contentType}`)
+  }
+}
+
+function validateResponseSize(text: string): void {
+  if (text.length > MAX_RESPONSE_SIZE) {
+    throw new Error('Response exceeds maximum allowed size')
+  }
+}
+
 export async function fetchContent(url: string): Promise<FetchedContent> {
   if (!isValidPublicUrl(url)) {
     throw new Error('Invalid URL: only HTTP and HTTPS protocols are allowed')
@@ -37,28 +61,16 @@ export async function fetchContent(url: string): Promise<FetchedContent> {
         if (!location) {
           throw new Error('Redirect without location header')
         }
-        const redirectUrl = new URL(location, currentUrl).toString()
-        if (!isValidPublicUrl(redirectUrl)) {
-          throw new Error('Redirect to invalid URL: only HTTP and HTTPS protocols are allowed')
-        }
-        const redirectParsed = new URL(redirectUrl)
-        if (isBlockedHost(redirectParsed.hostname)) {
-          throw new Error('Redirect to blocked host: private, internal, or metadata endpoints are not allowed')
-        }
-        currentUrl = redirectUrl
+        currentUrl = validateAndResolveRedirect(currentUrl, location)
         redirectCount += 1
         continue
       }
 
       const contentType = response.headers.get('content-type') ?? ''
-      if (!contentType.includes('text/html')) {
-        throw new Error(`Unsupported content-type: ${contentType}`)
-      }
+      validateContentType(contentType)
 
       const text = await response.text()
-      if (text.length > MAX_RESPONSE_SIZE) {
-        throw new Error('Response exceeds maximum allowed size')
-      }
+      validateResponseSize(text)
 
       return { url: currentUrl, content: text, contentType }
     }
